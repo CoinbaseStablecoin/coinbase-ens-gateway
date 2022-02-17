@@ -3,6 +3,7 @@ package server
 import (
 	"log"
 
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,20 +16,16 @@ func (s *Server) resolve(c *gin.Context) {
 	var params resolveParams
 
 	if err := c.ShouldBindUri(&params); err != nil {
-		c.JSON(400, gin.H{"error": "invalid_params"})
+		c.JSON(400, gin.H{"message": "invalid params"})
 		return
 	}
 
 	result, err := s.gw.Resolve(params.Sender, params.Data)
 	if err != nil {
 		log.Println("failed to resolve:", err)
-		c.JSON(400, gin.H{"error": "invalid_params"})
-		return
-	}
-	if len(result) == 0 {
-		c.JSON(404, gin.H{"error": "not_found"})
+		c.JSON(400, gin.H{"message": "invalid params"})
 		return
 	}
 
-	c.JSON(400, gin.H{"error": "not_implemented"})
+	c.JSON(200, gin.H{"data": hexutil.Encode(result)})
 }
