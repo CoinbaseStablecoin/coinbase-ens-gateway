@@ -75,9 +75,9 @@ var (
 	// EIP-2304
 	// https://github.com/ensdomains/ens-contracts/blob/v0.0.8/contracts/resolvers/profiles/IAddressResolver.sol
 	// addr(bytes32,uint256)
-	// It's unfortunate that this is named very similar to IAddrResolver, but
-	// that's the way it is in the official ENS repo.
-	IAddressResolver = mustParseABI(`[
+	// note: it is named IAddressResolver in the official repo, but that was too
+	// confusing because it sounded too much like IAddrResolver
+	IMulticoinResolver = mustParseABI(`[
 		{
 			"inputs": [
 				{
@@ -138,7 +138,7 @@ var (
 var (
 	SelectorIResolverServiceResolve = mustGetSelector(IResolverService, "resolve")
 	SelectorIAddrResolverAddr       = mustGetSelector(IAddrResolver, "addr")
-	SelectorIAddressResolverAddr    = mustGetSelector(IAddressResolver, "addr")
+	SelectorIMulticoinResolverAddr  = mustGetSelector(IMulticoinResolver, "addr")
 	SelectorITextResolverText       = mustGetSelector(ITextResolver, "text")
 )
 
