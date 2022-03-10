@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"time"
 
-	"github.cbhq.net/pete/coinbase-ens-gateway/resolver"
+	coder "github.com/CoinbaseStablecoin/ens-offchain-lookup-coder"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -43,7 +43,7 @@ func (s *Server) GetResolve(c *gin.Context) {
 }
 
 func (s *Server) Resolve(sender string, callDataHex string) ([]byte, error) {
-	lookup, err := resolver.DecodeRequest(sender, callDataHex)
+	lookup, err := coder.DecodeRequest(sender, callDataHex)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode request")
 	}
@@ -55,23 +55,41 @@ func (s *Server) Resolve(sender string, callDataHex string) ([]byte, error) {
 		hash       []byte
 	)
 
-	if ethLookup, ok := lookup.(*resolver.EthLookup); ok {
-		if ethLookup.Name() == "pete.cbdev.eth" {
-			resultData, hash, err = ethLookup.EncodeResult(common.HexToAddress("0x1111111111111111111111111111111111111111").Bytes(), expires)
+	if addrLookup, ok := lookup.(*coder.AddrLookup); ok {
+		if addrLookup.Name() == "pete.cbdev.eth" {
+			resultData, hash, err = addrLookup.EncodeResult(
+				common.HexToAddress("0x1111111111111111111111111111111111111111").Bytes(),
+				expires,
+			)
 		} else {
-			resultData, hash, err = ethLookup.EncodeResult(ZeroAddress.Bytes(), expires)
+			resultData, hash, err = addrLookup.EncodeResult(
+				ZeroAddress.Bytes(),
+				expires,
+			)
 		}
-	} else if multicoinLookup, ok := lookup.(*resolver.MulticoinLookup); ok {
-		if multicoinLookup.Name() == "pete.cbdev.eth" && multicoinLookup.CoinType().String() == "60" {
-			resultData, hash, err = multicoinLookup.EncodeResult(common.HexToAddress("0x1111111111111111111111111111111111111111").Bytes(), expires)
+	} else if multicoinAddrLookup, ok := lookup.(*coder.MulticoinAddrLookup); ok {
+		if multicoinAddrLookup.Name() == "pete.cbdev.eth" && multicoinAddrLookup.CoinType().String() == "60" {
+			resultData, hash, err = multicoinAddrLookup.EncodeResult(
+				common.HexToAddress("0x1111111111111111111111111111111111111111").Bytes(),
+				expires,
+			)
 		} else {
-			resultData, hash, err = multicoinLookup.EncodeResult([]byte{}, expires)
+			resultData, hash, err = multicoinAddrLookup.EncodeResult(
+				[]byte{},
+				expires,
+			)
 		}
-	} else if textLookup, ok := lookup.(*resolver.TextLookup); ok {
+	} else if textLookup, ok := lookup.(*coder.TextLookup); ok {
 		if textLookup.Name() == "pete.cbdev.eth" && textLookup.Key() == "com.twitter" {
-			resultData, hash, err = textLookup.EncodeResult([]byte("petejkim"), expires)
+			resultData, hash, err = textLookup.EncodeResult(
+				[]byte("petejkim"),
+				expires,
+			)
 		} else {
-			resultData, hash, err = textLookup.EncodeResult([]byte{}, expires)
+			resultData, hash, err = textLookup.EncodeResult(
+				[]byte{},
+				expires,
+			)
 		}
 	}
 	if err != nil {
@@ -84,7 +102,7 @@ func (s *Server) Resolve(sender string, callDataHex string) ([]byte, error) {
 	}
 	sig[len(sig)-1] += 27
 
-	responseData, err := resolver.EncodeResponse(resultData, expires, sig)
+	responseData, err := coder.EncodeResponse(resultData, expires, sig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to encode the response")
 	}
